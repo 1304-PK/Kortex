@@ -7,17 +7,18 @@ const CourseOutline = ({ Response }) => {
 
   const navigate = useNavigate()
   const {session} = useAuth()
+  console.log(Response)
 
   const addToWorkspace = async () => {
     const {data, error} = await supabase
     .from('courses')
     .insert({
       user_id: session.user.id,
-      title: "dummy title for now",
-      overview: Response.topic_overview.description,
-      total_topics: Response.total_topics,
-      total_subtopics: Response.total_subtopics_range,
-      estimated_duration_days: 10
+      title: Response.title.name,
+      overview: Response.title.description,
+      total_topics: Response.course_structure_rules.total_topics,
+      total_subtopics: Response.course_structure_rules.total_subtopics,
+      estimated_duration: Response.course_structure_rules.total_estimated_time
     })
     .select()
     .single()
@@ -30,7 +31,7 @@ const CourseOutline = ({ Response }) => {
     }
   }
 
-  if (!Response.topic_overview){
+  if (!Response.title){
     return (
         <div>
             {Response.error}
@@ -45,10 +46,10 @@ const CourseOutline = ({ Response }) => {
       {/* Topic Overview */}
       <div>
         <h2 className="text-2xl md:text-3xl font-semibold mb-3">
-          Topic Overview
+          {Response.title.name}
         </h2>
         <p className="text-white/90">
-          {Response.topic_overview.description}
+          {Response.title.description}
         </p>
       </div>
 
@@ -76,21 +77,15 @@ const CourseOutline = ({ Response }) => {
           </li>
           <li>
             <span className="font-medium">
-              Subtopics per Topic:
-            </span>{" "}
-            {Response.course_structure_rules.subtopics_per_topic_range}
-          </li>
-          <li>
-            <span className="font-medium">
               Total Subtopics:
             </span>{" "}
-            {Response.course_structure_rules.total_subtopics_range}
+            {Response.course_structure_rules.total_subtopics}
           </li>
           <li>
             <span className="font-medium">
-              Learning Progression:
+              Estimated Time:
             </span>{" "}
-            {Response.course_structure_rules.progression_order}
+            {Response.course_structure_rules.total_estimated_time}
           </li>
         </ul>
       </div>
