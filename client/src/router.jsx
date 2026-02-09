@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import Signup from "./pages/Signup"
 import Login from "./pages/Login"
 import GeneratePath from "./pages/GeneratePath"
+import Workspace from "./pages/Workspace"
 
 const router = createBrowserRouter([
     {
@@ -27,6 +28,14 @@ const router = createBrowserRouter([
         element: (
             <ProtectedRoute>
                 <GeneratePath />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: "/workspace",
+        element: (
+            <ProtectedRoute>
+                <Workspace />
             </ProtectedRoute>
         )
     }
