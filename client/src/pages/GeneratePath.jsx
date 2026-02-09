@@ -2,12 +2,12 @@ import { useState, useRef, useEffect } from 'react'
 import { IoSend } from 'react-icons/io5'
 import { useAuth } from "../context/AuthContext"
 import capitalize from "../utils/capitalize"
+import Sidebar from '../components/Sidebar'
 import {PuffLoader } from "react-spinners"
 import CourseOutline from '../components/CourseOutline'
 
 export default function GeneratePath() {
-
-  const {user, loading} = useAuth()
+  const {session, loading} = useAuth()
   const [prompt, setPrompt] = useState('')
   const textareaRef = useRef(null)
   const [chat, setChat] = useState([])
@@ -25,6 +25,10 @@ export default function GeneratePath() {
 
   const handlePromptSubmit = async (e) => {
     e.preventDefault()
+
+    if (textareaRef.current.value.trim().length===0){
+      return
+    }
 
     setChat([...chat, {
       author: 'user',
@@ -60,12 +64,13 @@ export default function GeneratePath() {
 
   return (
     <div className="min-h-screen bg-black flex w-full">
+      <Sidebar />
       <div className="space-y-8 min-h-screen flex-1 flex flex-col justify-center">
         {/* Header Section */}
         <div className='max-w-3xl flex flex-col h-full min-w-full justify-around px-20 gap-10'>
           <div className="text-center space-y-4">
             <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
-              Hey
+              Hey, {capitalize(session.user.email.split('@')[0])}
             </h1>
             <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto">
               What are you planning on learning today
@@ -81,15 +86,15 @@ export default function GeneratePath() {
               }
               else if (msg.author === 'ai'){
                 return(
-                  <div key={msg.time} className='self-start bg-[#383838] px-5 py-4 rounded-2xl rounded-tl-none'>{msg.msgContent.length===0 ? <PuffLoader color='white' size={30}/> : <CourseOutline Response={JSON.parse(msg.msgContent)}/>}
+                  <div key={msg.time} className='self-start bg-[#161616] px-5 py-4 rounded-2xl rounded-tl-none'>{msg.msgContent.length===0 ? <PuffLoader color='white' size={30}/> : <CourseOutline Response={JSON.parse(msg.msgContent)}/>}
                   </div>
                 )
               }
             })}
           </div>
           {/* Textarea */}
-            <form onSubmit={(e) => {handlePromptSubmit(e)}}>
-              <div className="border-2 border-[#ffffff77] rounded-2xl bg-black/50 backdrop-blur-sm overflow-hidden">
+            <form onSubmit={(e) => {handlePromptSubmit(e)}} className='sticky bottom-0'>
+              <div className="border-2 border-[#ffffff77] rounded-2xl bg-black overflow-hidden">
                 <textarea
                   ref={textareaRef}
                   value={prompt}
