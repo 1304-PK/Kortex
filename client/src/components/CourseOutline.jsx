@@ -1,46 +1,87 @@
 import supabase from "../config/supabaseClient";
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { FaPlus } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 
 const CourseOutline = ({ Response }) => {
 
+  console.log(Response)
+
   const navigate = useNavigate()
-  const {session} = useAuth()
+  const { session } = useAuth()
   console.log(Response)
 
   const addToWorkspace = async () => {
-    const {data, error} = await supabase
-    .from('courses')
-    .insert({
-      user_id: session.user.id,
-      title: Response.title.name,
-      overview: Response.title.description,
-      total_topics: Response.course_structure_rules.total_topics,
-      total_subtopics: Response.course_structure_rules.total_subtopics,
-      estimated_duration: Response.course_structure_rules.total_estimated_time
-    })
-    .select()
-    .single()
+    let { data: course, error: courseError } = await supabase
+      .from('courses')
+      .insert({
+        user_id: session.user.id,
+        title: Response.title.name,
+        overview: Response.title.description,
+        total_topics: Response.course_structure_rules.total_topics,
+        total_subtopics: Response.course_structure_rules.total_subtopics,
+        estimated_duration: Response.course_structure_rules.total_estimated_time
+      })
+      .select()
+      .single()
 
-    if (error){
-      console.error("Error inserting course: ", course)
-    } else{
-      console.log("Course created: ", data)
-      navigate("/workspace")
+    if (courseError) {
+      return console.log(courseError)
     }
+
+    const topicsToInsert = Response.course_layout.map((topic) => {
+      return (
+        {
+          course_id: course.id,
+          title: topic.topic_name,
+          estimated_time: topic.estimated_time,
+          topic_number: topic.topic_number
+        }
+      )
+    })
+
+    const { data: topic, error: topicError } = await supabase
+      .from('topics')
+      .insert(topicsToInsert)
+      .select()
+
+    if (topicError) {
+      return console.log("Topic Error: ", topicError)
+    }
+
+    const subtopicsToInsert = Response.course_layout.flatMap(topic_ => {
+      return topic_.subtopics.map((subtopic, index) => 
+        ({
+            topic_id: topic[0].id,
+            title: subtopic,
+            subtopic_number: index + 1
+          })
+      )
+    })
+
+    console.log(subtopicsToInsert)
+    const { data: subtopic, error: subtopicError } = await supabase
+      .from('subtopics')
+      .insert(subtopicsToInsert)
+      .select()
+
+    if (subtopicError) {
+      return console.log("Subtopic error: ", subtopicError)
+    }
+
+    navigate("/workspace")
   }
 
-  if (!Response.title){
+  if (!Response.title) {
     return (
-        <div>
-            {Response.error}
-        </div>
+      <div>
+        {Response.error}
+      </div>
     )
   }
 
   return (
-    
+
     <div className="max-w-3xl space-y-10 text-white leading-relaxed">
       {console.log('hey')}
       {/* Topic Overview */}
@@ -127,7 +168,7 @@ const CourseOutline = ({ Response }) => {
         </p>
       </div>
 
-        <button className='bg-[#305cde] px-3 py-3 rounded-[10px] mt-10 cursor-pointer flex justify-center items-center gap-2' onClick={addToWorkspace}><FaPlus className='inline'/>Add to Workspace</button>
+      <button className='bg-[#305cde] px-3 py-3 rounded-[10px] mt-10 cursor-pointer flex justify-center items-center gap-2' onClick={addToWorkspace}><FaPlus className='inline' />Add to Workspace</button>
 
     </div>
   );
